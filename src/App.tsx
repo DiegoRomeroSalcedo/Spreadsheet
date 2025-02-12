@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import "./App.css";
 import Grid from './components/Grid';
-import { generateGrid } from './services/gridService';
+import { generateGrid } from './utils/generateGrid';
 import { Cell } from './types/cell';
+import { evalFormula } from './utils/formulaHelper';
 
 function App() {
   const [ fields, setFields ] = useState<Cell[][]>([]);
@@ -19,42 +20,21 @@ function App() {
     setRowNumbers(rowNumbers);
   }, []);
 
-  const evalFormula = (x: string) => {
-    const cellRegex = /([A-Z])([1-9][0-9]?)/gi;
-    // Buscamos las celdas
-    const cells = x.match(cellRegex);
-    let result = 0;
-    cells?.forEach(cell => {
-      const col = cell.charAt(0); // Letras A, B, C, ...
-      const row = parseInt(cell.slice(1), 10) - 1; // Indexamos correctamente el número de fila con -1
-
-      const colIndex = col.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
-      const cellValue = fields[row][colIndex].value || "0";
-
-      result += parseFloat(cellValue);
-    })
-
-    return result;
-  }
-
   const changeFieldsValue = (value: string, id: string, rowIndex: number, colIndex: number, evaluate: boolean = false) => {
 
-    const updatedField = fields.map((row, rIdx) =>
-      rIdx === rowIndex
-        ? row.map((cell, cIdx) =>
-            cIdx === colIndex ? { ...cell, value } : cell
-          )
-        : row
-    );
+    /**
+     * We make adjustments to optimize the code
+     */
 
-    const row = updatedField.find((_, rIdx) => rIdx === rowIndex);
-    const cell = row?.find((_, cIdx) => cIdx === colIndex) ?? null;
-    
-    const cellValue = cell ? cell.value.replace(/\s/g, "") : "";
+    const updatedField = [...fields]; // Clonamos la matriz de fields
+    const updatedRow = [...updatedField[rowIndex]]; // Copiamos la fila especifica
+    const updatedCell = { ...updatedRow[colIndex], value }; // Copiamos la celda específica
 
-    if (evaluate && cell && cellValue.startsWith("=")) {
-      const total = evalFormula(cellValue.slice(1));
-      updatedField[rowIndex][colIndex].value = total.toString();
+    updatedRow[colIndex] = updatedCell; // Se actuliza solo la celda especifica
+    updatedField[rowIndex] = updatedRow; // Se actualiza solo la fila especifica
+
+    if (evaluate && value.trim().startsWith("=")) {
+      updatedCell.value = evalFormula(value.slice(1), fields).toString();
     }
 
     // Actualizamos el estado

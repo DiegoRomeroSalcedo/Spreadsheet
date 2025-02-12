@@ -20,10 +20,9 @@ const Grid: React.FC<GridProps> = ({ fields, columnLetters, rowNumbers, changeFi
             }
             {
                 fields.map((row, rowIndex) => (
-                    <React.Fragment key={rowIndex}>
+                    <React.Fragment key={`row-${rowIndex}`}>
                         <div className='text-center'>{rowNumbers[rowIndex]}</div>
-                        {
-                        row.map((cell, colIndex) => (
+                        {row.map((cell, colIndex) => (
                             <Cell 
                                 key={cell.id}
                                 cell={cell}
@@ -31,8 +30,7 @@ const Grid: React.FC<GridProps> = ({ fields, columnLetters, rowNumbers, changeFi
                                 colIndex={colIndex}
                                 onChange={changeFieldsValue}
                             />
-                        ))
-                        }
+                        ))}
                     </React.Fragment>
                 ))
             }
